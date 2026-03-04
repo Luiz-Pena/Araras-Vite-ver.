@@ -1,0 +1,135 @@
+// src/pages/Perfil.jsx
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { api } from '../api';
+import { useAuth } from '../hooks/useAuth';
+
+const AVATAR_DEFAULT = 'https://cdn-icons-png.flaticon.com/512/3736/3736502.png';
+const fmt = (d) => new Date(d).toLocaleDateString('pt-BR');
+
+export default function Perfil() {
+  const { id } = useParams();
+  const { user, logout } = useAuth();
+  const nav = useNavigate();
+  const [data, setData] = useState(null);
+  const [editando, setEditando] = useState(false);
+  const [editForm, setEditForm] = useState({ nome: '', bio: '', avatar: '' });
+
+  const carregar = () =>
+    api.perfis.buscar(id).then((d) => {
+      setData(d);
+      setEditForm({ nome: d.perfil.nome || '', bio: d.perfil.bio || '', avatar: d.perfil.avatar || '' });
+    });
+
+  useEffect(() => { carregar(); }, [id]);
+
+  const salvarPerfil = async (e) => {
+    e.preventDefault();
+    await api.perfis.editar(editForm);
+    setEditando(false);
+    carregar();
+  };
+
+  const excluirPerfil = async () => {
+    if (!confirm('Excluir sua conta permanentemente?')) return;
+    await api.perfis.deletar();
+    await logout();
+    nav('/');
+  };
+
+  const deletarTopico = async (tid) => {
+    if (!confirm('Excluir este tópico?')) return;
+    await api.topicos.deletar(tid);
+    carregar();
+  };
+
+  const seguir = async () => {
+    const acao = data.jaSegue ? 'deixar_de_seguir' : 'seguir';
+    const res = await api.perfis.seguir(id, acao);
+    setData((d) => ({ ...d, jaSegue: res.jaSegue }));
+    carregar();
+  };
+
+  if (!data) return <div className="container py-5 text-center"><div className="spinner-border text-primary" /></div>;
+
+  const { perfil, topicos, jaSegue } = data;
+  const isMeu = user?.id === perfil.id;
+
+  return (
+    <div className="container-fluid py-3" style={{ display: 'flex', gap: 24 }}>
+      {/* Sidebar perfil */}
+      <aside style={{ width: 300, flexShrink: 0 }}>
+        <div className="card p-3">
+          <Link to="/" className="small mb-2 d-block">← Voltar</Link>
+          <img src={perfil.avatar || AVATAR_DEFAULT} alt="" className="rounded-circle mb-2"
+            style={{ width: 120, height: 120, objectFit: 'cover' }} />
+          <h5>{perfil.nome}</h5>
+          <p className="text-muted small">{perfil.seguidores} Seguidores · {perfil.seguindo} Seguindo</p>
+          <p className="small text-muted">Membro desde {fmt(perfil.created_at)}</p>
+          {perfil.bio && <p className="small">{perfil.bio}</p>}
+
+          {isMeu && !editando && (
+            <>
+              <button className="btn btn-primary btn-sm w-100 mb-2" onClick={() => setEditando(true)}>
+                Editar Perfil
+              </button>
+            </>
+          )}
+
+          {isMeu && editando && (
+            <form onSubmit={salvarPerfil}>
+              <div className="mb-2">
+                <label className="form-label small">Nome</label>
+                <input className="form-control form-control-sm" required value={editForm.nome}
+                  onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} />
+              </div>
+              <div className="mb-2">
+                <label className="form-label small">Avatar (URL)</label>
+                <input className="form-control form-control-sm" value={editForm.avatar}
+                  onChange={(e) => setEditForm({ ...editForm, avatar: e.target.value })} />
+              </div>
+              <div className="mb-2">
+                <label className="form-label small">Bio</label>
+                <textarea className="form-control form-control-sm" rows={3} value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })} />
+              </div>
+              <button type="submit" className="btn btn-success btn-sm w-100 mb-1">Salvar</button>
+              <button type="button" className="btn btn-secondary btn-sm w-100 mb-1" onClick={() => setEditando(false)}>Cancelar</button>
+              <button type="button" className="btn btn-danger btn-sm w-100" onClick={excluirPerfil}>Excluir Conta</button>
+            </form>
+          )}
+
+          {!isMeu && user && (
+            <button className={`btn btn-sm w-100 ${jaSegue ? 'btn-secondary' : 'btn-success'}`} onClick={seguir}>
+              {jaSegue ? 'Deixar de Seguir' : 'Seguir'}
+            </button>
+          )}
+        </div>
+      </aside>
+
+      {/* Publicações */}
+      <main style={{ flex: 1 }}>
+        <h5 className="mb-3">Publicações</h5>
+        {topicos.length === 0 && <p className="text-muted">Nenhuma publicação ainda.</p>}
+        {topicos.map((t) => (
+          <div key={t.id} className="card mb-3 position-relative">
+            <div className="card-body">
+              {isMeu && (
+                <button
+                  className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1"
+                  onClick={() => deletarTopico(t.id)}
+                >✕</button>
+              )}
+              <Link to={`/topico/${t.id}`} className="text-dark fw-semibold d-block mb-1">{t.titulo}</Link>
+              <p className="text-muted small mb-1" style={{ whiteSpace: 'pre-wrap' }}>
+                {t.conteudo.slice(0, 200)}{t.conteudo.length > 200 ? '…' : ''}
+              </p>
+              {t.midia && <img src={t.midia} className="img-fluid rounded mb-1" alt="mídia" style={{ maxHeight: 160 }} />}
+              <small className="text-muted">{t.curtidas} curtidas · {t.comentarios} comentários · {fmt(t.created_at)}</small>
+            </div>
+          </div>
+        ))}
+      </main>
+    </div>
+  );
+}

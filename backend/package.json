@@ -1,0 +1,18 @@
+{
+  "name": "araras-backend",
+  "version": "1.0.0",
+  "description": "API REST do Fórum Araras",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "mysql2": "^3.6.1"
+  }
+}
