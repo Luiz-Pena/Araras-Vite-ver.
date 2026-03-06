@@ -24,6 +24,8 @@ export default function Membros() {
                 <div className="small text-muted">
                   Membro desde {new Date(m.created_at).toLocaleDateString('pt-BR')}
                   {' · '}{m.contagem_topicos} tópicos
+                  <br />
+                  {m?.role === 'adm' ? <span className="badge bg-primary">Administrador</span> : <span className="badge bg-secondary">Usuário</span>}
                 </div>
               </div>
             </div>

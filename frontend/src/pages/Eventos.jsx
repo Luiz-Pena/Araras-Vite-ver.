@@ -2,15 +2,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Eventos() {
+  const { user } = useAuth();
   const [eventos, setEventos] = useState([]);
   const [form, setForm] = useState({ nome: '', descricao: '', dataEvento: '', local: '' });
   const [erro, setErro] = useState('');
   const modalRef = useRef();
 
   const carregar = () => api.eventos.listar().then(setEventos);
-  useEffect(carregar, []);
+  useEffect(() => { carregar(); }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -30,9 +32,11 @@ export default function Eventos() {
       <main style={{ flex: 3 }}>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4>Próximos Eventos</h4>
-          <button className="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEvento">
-            Criar Evento
-          </button>
+          {user?.role === 'adm' && (
+            <button className="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEvento">
+              Criar Evento
+            </button>
+          )}
         </div>
         <div className="card">
           <ul className="list-group list-group-flush">

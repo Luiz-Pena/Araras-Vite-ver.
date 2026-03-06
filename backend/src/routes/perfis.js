@@ -8,7 +8,7 @@ const router = Router();
 // GET /api/perfis/:id
 router.get('/:id', async (req, res) => {
   const [[perfil]] = await db.query(`
-    SELECT p.user_id AS id, p.nome, p.bio, p.avatar, p.created_at,
+    SELECT p.user_id AS id, p.nome, p.bio, p.avatar, p.created_at, p.role,
       (SELECT COUNT(*) FROM seguir WHERE seguindo_id = p.user_id) AS seguidores,
       (SELECT COUNT(*) FROM seguir WHERE seguidor_id = p.user_id) AS seguindo
     FROM perfis p WHERE p.user_id = ?
@@ -17,7 +17,7 @@ router.get('/:id', async (req, res) => {
 
   const [topicos] = await db.query(`
     SELECT t.id, t.titulo, t.conteudo, t.created_at, t.midia,
-           p.avatar AS autor_avatar,
+           p.avatar AS autor_avatar, p.nome AS autor_nome, p.role,
            (SELECT COUNT(*) FROM curtidas_topicos WHERE topico_id = t.id) AS curtidas,
            (SELECT COUNT(*) FROM respostas          WHERE topico_id = t.id) AS comentarios
     FROM topicos t
@@ -51,6 +51,16 @@ router.put('/', requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
+router.put('/:id/ban', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const [[usuario]] = await db.query('SELECT role FROM perfis WHERE user_id = ?', [id]);
+  if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado.' });
+  if (usuario.role === 'admin') return res.status(403).json({ error: 'Não pode banir outro admin.' });
+
+  await db.query('UPDATE perfis SET banned_until = datetime("now", "+7 days") WHERE user_id = ?', [id]);
+  res.json({ ok: true });
+});
+
 // DELETE /api/perfis  — excluir conta do usuário logado
 router.delete('/', requireAuth, async (req, res) => {
   const uid = req.session.userId;
@@ -80,11 +90,14 @@ router.post('/:id/seguir', requireAuth, async (req, res) => {
   if (req.session.userId === seguindoId) return res.status(400).json({ error: 'Não pode seguir a si mesmo.' });
 
   if (acao === 'seguir') {
-    await db.query('INSERT IGNORE INTO seguir (seguidor_id, seguindo_id) VALUES (?, ?)', [req.session.userId, seguindoId]);
+    await db.query('INSERT OR IGNORE INTO seguir (seguidor_id, seguindo_id) VALUES (?, ?)', [req.session.userId, seguindoId]);
   } else {
     await db.query('DELETE FROM seguir WHERE seguidor_id = ? AND seguindo_id = ?', [req.session.userId, seguindoId]);
   }
   res.json({ jaSegue: acao === 'seguir' });
 });
 
+
 export default router;
+
+

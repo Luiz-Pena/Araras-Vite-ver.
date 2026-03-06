@@ -25,7 +25,7 @@ router.get('/:nome/topicos', async (req, res) => {
 
   const [rows] = await db.query(`
     SELECT t.id, t.titulo, t.created_at, t.conteudo, t.user_id,
-           p.nome AS autor_nome, p.avatar AS autor_avatar,
+           p.nome AS autor_nome, p.avatar AS autor_avatar, p.role AS autor_role,
            (SELECT COUNT(*) FROM respostas WHERE topico_id = t.id) AS contagem_respostas
     FROM topicos t
     LEFT JOIN perfis p ON t.user_id = p.user_id

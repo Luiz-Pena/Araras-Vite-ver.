@@ -12,3 +12,9 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+araras-vite.iml
+araras-vite/
+araras.db
+araras.db-journal
+araras.db-shm
+araras.db-wal

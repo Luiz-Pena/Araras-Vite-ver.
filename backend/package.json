@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "populacionar": "node src/db/mocked_data.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-session": "^1.17.3",

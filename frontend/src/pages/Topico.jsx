@@ -31,13 +31,19 @@ export default function Topico() {
 
   const submitComentario = async (e) => {
     e.preventDefault();
-    setEnviando(true);
-    try {
-      await api.topicos.comentar(id, comentario);
-      setComentario({ conteudo: '', midia: '' });
-      carregar();
-    } finally {
-      setEnviando(false);
+    
+    if (user?.banned_until && new Date(user.banned_until) > new Date()) {
+      alert('Você está banido de comentar até ' + new Date(user.banned_until).toLocaleString());
+      return;
+    } else {
+      setEnviando(true);
+      try {
+        await api.topicos.comentar(id, comentario);
+        setComentario({ conteudo: '', midia: '' });
+        carregar();
+      } finally {
+        setEnviando(false);
+      }
     }
   };
 
@@ -45,6 +51,12 @@ export default function Topico() {
     if (!confirm('Excluir comentário?')) return;
     await api.topicos.deletarComentario(id, cid);
     carregar();
+  };
+
+  const deletarTopico = async () => {
+    if (!confirm('Excluir tópico?')) return;
+    await api.topicos.deletar(id);
+    window.history.back();
   };
 
   if (loading) return <div className="container py-5 text-center"><div className="spinner-border text-primary" /></div>;
@@ -66,10 +78,16 @@ export default function Topico() {
               <h4 className="mb-0">{topico.titulo}</h4>
               <small className="text-muted">
                 Por <Link to={`/perfil/${topico.user_id}`}>{topico.autor_nome || 'Usuário Removido'}</Link>
-                {' '}em {fmt(topico.created_at)}
+                {topico.autor_role === 'adm' && <span className="badge bg-primary">Administrador</span>} 
+                {' '} em {fmt(topico.created_at)}
               </small>
             </div>
           </div>
+
+          {user && (user.id === topico.user_id || user.role === 'adm') && (
+            <button className="btn btn-sm btn-outline-danger mb-3" onClick={deletarTopico}>Excluir Tópico</button>
+          )}
+          
           <hr />
           <p style={{ whiteSpace: 'pre-wrap' }}>{topico.conteudo}</p>
           {topico.midia && <img src={topico.midia} className="img-fluid mt-2 rounded" alt="mídia" />}
@@ -96,14 +114,19 @@ export default function Topico() {
             style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
           <div className="card flex-grow-1 position-relative">
             <div className="card-body py-2 px-3">
-              {user?.id === c.user_id && (
+              {(user?.id === c.user_id || user?.role === 'adm') && (
                 <button
                   className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1"
                   onClick={() => deletarComentario(c.id)}
                   title="Excluir"
                 >✕</button>
               )}
-              <strong className="d-block">{c.autor_nome || 'Usuário Removido'}</strong>
+              <div className="mb-1 d-flex align-items-center gap-2">
+                <Link to={`/perfil/${c.user_id}`} className="text-decoration-none">
+                  {c.autor_nome || 'Usuário Removido'}
+                </Link>
+                {c.autor_role === 'adm' && <span className="badge bg-primary ms-1">Administrador</span>}
+              </div>
               <p className="mb-1" style={{ whiteSpace: 'pre-wrap' }}>{c.conteudo}</p>
               {c.midia && <img src={c.midia} className="img-fluid mb-1 rounded" alt="mídia" style={{ maxHeight: 200 }} />}
               <small className="text-muted">{fmt(c.created_at)}</small>
@@ -113,6 +136,7 @@ export default function Topico() {
       ))}
 
       {/* Form novo comentário */}
+
       {user ? (
         <div className="card mt-4">
           <div className="card-body">

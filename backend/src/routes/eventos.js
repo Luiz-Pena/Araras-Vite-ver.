@@ -7,7 +7,7 @@ const router = Router();
 // GET /api/eventos
 router.get('/', async (_req, res) => {
   const [rows] = await db.query(
-    "SELECT id, nome, descricao, DATE_FORMAT(data_evento,'%d/%m/%Y %H:%i') AS data_formatada, local FROM eventos ORDER BY data_evento DESC"
+    "SELECT id, nome, descricao, strftime('%d/%m/%Y %H:%M', data_evento) AS data_formatada, local FROM eventos ORDER BY data_evento DESC"
   );
   res.json(rows);
 });
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
 // GET /api/eventos/recentes  (últimos 3, para sidebar)
 router.get('/recentes', async (_req, res) => {
   const [rows] = await db.query(
-    "SELECT nome, DATE_FORMAT(data_evento,'%d/%m/%Y %H:%i') AS data_formatada FROM eventos ORDER BY data_evento DESC LIMIT 3"
+    "SELECT nome, strftime('%d/%m/%Y %H:%i', data_evento) AS data_formatada FROM eventos ORDER BY data_evento DESC LIMIT 3"
   );
   res.json(rows);
 });
@@ -49,11 +49,11 @@ router.get('/recentes', async (_req, res) => {
 export const membrosRouter = Router();
 membrosRouter.get('/', async (_req, res) => {
   const [rows] = await db.query(`
-    SELECT p.user_id AS id, p.nome, p.avatar, p.created_at,
+    SELECT p.user_id AS id, p.nome, p.avatar, p.created_at, p.role,
            COUNT(t.id) AS contagem_topicos
     FROM perfis p
     LEFT JOIN topicos t ON p.user_id = t.user_id
-    GROUP BY p.user_id, p.nome, p.avatar, p.created_at
+    GROUP BY p.user_id, p.nome, p.avatar, p.created_at, p.role
     ORDER BY p.created_at DESC
   `);
   res.json(rows);

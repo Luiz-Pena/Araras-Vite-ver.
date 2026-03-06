@@ -40,6 +40,7 @@ export const api = {
     buscar:  (id)    => req(`/perfis/${id}`),
     editar:  (data)  => req('/perfis',        { method: 'PUT',    body: data }),
     deletar: ()      => req('/perfis',        { method: 'DELETE' }),
+    banir:   (id, data) => req(`/perfis/${id}/ban`, { method: 'PUT', body: data }),
     seguir:  (id, acao) => req(`/perfis/${id}/seguir`, { method: 'POST', body: { acao } }),
   },
   categorias: {

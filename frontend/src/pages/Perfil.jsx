@@ -37,6 +37,12 @@ export default function Perfil() {
     nav('/');
   };
 
+  const banirUsuario = async () => {
+    if (!confirm('Banir este usuário? Ele nao poderá comentar ou criar tópicos por 7 dias.')) return;
+    await api.perfis.banir(id);
+    carregar();
+  }
+
   const deletarTopico = async (tid) => {
     if (!confirm('Excluir este tópico?')) return;
     await api.topicos.deletar(tid);
@@ -64,9 +70,16 @@ export default function Perfil() {
           <img src={perfil.avatar || AVATAR_DEFAULT} alt="" className="rounded-circle mb-2"
             style={{ width: 120, height: 120, objectFit: 'cover' }} />
           <h5>{perfil.nome}</h5>
+          {perfil?.role === 'adm' && <span className="badge bg-primary">Administrador</span>}
           <p className="text-muted small">{perfil.seguidores} Seguidores · {perfil.seguindo} Seguindo</p>
           <p className="small text-muted">Membro desde {fmt(perfil.created_at)}</p>
           {perfil.bio && <p className="small">{perfil.bio}</p>}
+
+          {user?.role === 'adm' && !isMeu && perfil.role !== 'adm' && (
+            <button className="btn btn-danger btn-sm w-100 mb-2" onClick={banirUsuario}>
+              Banir Usuário
+            </button>
+          )}
 
           {isMeu && !editando && (
             <>

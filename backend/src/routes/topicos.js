@@ -9,7 +9,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const [rows] = await db.query(`
     SELECT t.id, t.titulo, t.conteudo, t.created_at, t.midia, t.user_id,
-           p.nome AS autor_nome, p.avatar AS autor_avatar,
+           p.nome AS autor_nome, p.avatar AS autor_avatar, p.role as autor_role,
            c.nome AS categoria_nome,
            (SELECT COUNT(*) FROM respostas WHERE topico_id = t.id) AS contagem_respostas
     FROM topicos t
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const [[topico]] = await db.query(`
     SELECT t.id, t.titulo, t.conteudo, t.midia, t.created_at, t.user_id,
-           p.nome AS autor_nome, p.avatar AS autor_avatar,
+           p.nome AS autor_nome, p.avatar AS autor_avatar, p.role as autor_role,
            (SELECT COUNT(*) FROM curtidas_topicos WHERE topico_id = t.id) AS curtidas
     FROM topicos t
     LEFT JOIN perfis p ON t.user_id = p.user_id
@@ -36,7 +36,7 @@ router.get('/:id', async (req, res) => {
 
   const [comentarios] = await db.query(`
     SELECT r.id, r.conteudo, r.created_at, r.user_id, r.midia,
-           p.nome AS autor_nome, p.avatar AS autor_avatar
+           p.nome AS autor_nome, p.avatar AS autor_avatar, p.role as autor_role
     FROM respostas r
     LEFT JOIN perfis p ON r.user_id = p.user_id
     WHERE r.topico_id = ?
@@ -99,7 +99,7 @@ router.post('/:id/curtir', requireAuth, async (req, res) => {
   const { acao } = req.body; // 'curtir' | 'descurtir'
   if (acao === 'curtir') {
     await db.query(
-      'INSERT IGNORE INTO curtidas_topicos (user_id, topico_id) VALUES (?, ?)',
+      'INSERT OR IGNORE INTO curtidas_topicos (user_id, topico_id) VALUES (?, ?)',
       [req.session.userId, req.params.id]
     );
   } else {

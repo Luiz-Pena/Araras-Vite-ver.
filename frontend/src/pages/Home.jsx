@@ -18,8 +18,9 @@ function TopicCard({ t }) {
           <h6 className="mb-1">
             <Link to={`/topico/${t.id}`} className="text-dark fw-semibold">{t.titulo}</Link>
           </h6>
-          <small className="text-muted">
+          <small className="text-muted gap-2 d-flex flex-wrap align-items-center">
             Por <Link to={`/perfil/${t.user_id}`}>{t.autor_nome || 'Usuário Removido'}</Link>{' '}
+            {t.autor_role === 'adm' && <span className="badge bg-primary ms-1">Administrador</span>}
             em <Link to={`/categorias?curso=${encodeURIComponent(t.categoria_nome)}`}
               className="badge bg-primary-subtle text-primary text-decoration-none">
               {t.categoria_nome}
@@ -53,7 +54,7 @@ export default function Home() {
       <main style={{ flex: 3 }}>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4 className="mb-0">Tópicos Recentes</h4>
-          {user && (
+          {user && user.banned_until && new Date(user.banned_until) > new Date() ? null : (
             <button className="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovoTopico">
               Criar Novo Tópico
             </button>
