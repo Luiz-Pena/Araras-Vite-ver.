@@ -41,6 +41,7 @@ export const api = {
     editar:  (data)  => req('/perfis',        { method: 'PUT',    body: data }),
     deletar: ()      => req('/perfis',        { method: 'DELETE' }),
     banir:   (id, data) => req(`/perfis/${id}/ban`, { method: 'PUT', body: data }),
+    tornarAdm: (id) => req(`/perfis/${id}/tornar_adm`, { method: 'PUT' }),
     seguir:  (id, acao) => req(`/perfis/${id}/seguir`, { method: 'POST', body: { acao } }),
   },
   categorias: {
@@ -51,6 +52,7 @@ export const api = {
     listar:   ()     => req('/eventos'),
     recentes: ()     => req('/eventos/recentes'),
     criar:    (data) => req('/eventos', { method: 'POST', body: data }),
+    deletar:  (id)   => req(`/eventos/${id}`, { method: 'DELETE' }),
   },
   membros: {
     listar: () => req('/membros'),

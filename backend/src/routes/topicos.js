@@ -72,25 +72,38 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json({ id: result.insertId });
 });
 
-// DELETE /api/topicos/:id
 router.delete('/:id', requireAuth, async (req, res) => {
-  const [[t]] = await db.query('SELECT user_id FROM topicos WHERE id = ?', [req.params.id]);
-  if (!t) return res.status(404).json({ error: 'Não encontrado.' });
-  if (t.user_id !== req.session.userId) return res.status(403).json({ error: 'Sem permissão.' });
-
-  const conn = await db.getConnection();
-  await conn.beginTransaction();
   try {
-    await conn.query('DELETE FROM curtidas_topicos WHERE topico_id = ?', [req.params.id]);
-    await conn.query('DELETE FROM respostas         WHERE topico_id = ?', [req.params.id]);
-    await conn.query('DELETE FROM topicos           WHERE id = ?',        [req.params.id]);
-    await conn.commit();
-    res.json({ ok: true });
-  } catch (e) {
-    await conn.rollback();
-    res.status(500).json({ error: 'Erro ao deletar.' });
-  } finally {
-    conn.release();
+    const [[topico]] = await db.query('SELECT user_id FROM topicos WHERE id = ?', [req.params.id]);
+    if (!topico) return res.status(404).json({ error: 'Tópico não encontrado.' });
+
+    const [[usuario]] = await db.query('SELECT role FROM perfis WHERE user_id = ?', [req.session.userId]);
+    const isAdm = usuario?.role === 'adm';
+    const isDono = topico.user_id === req.session.userId;
+
+    if (!isDono && !isAdm) {
+      return res.status(403).json({ error: 'Sem permissão para excluir este tópico.' });
+    }
+
+    const conn = await db.getConnection();
+    await conn.beginTransaction(); 
+
+    try {
+      await conn.query('DELETE FROM curtidas_topicos WHERE topico_id = ?', [req.params.id]);
+      await conn.query('DELETE FROM respostas WHERE topico_id = ?', [req.params.id]);
+      await conn.query('DELETE FROM topicos WHERE id = ?', [req.params.id]);
+      
+      await conn.commit(); 
+      res.json({ ok: true });
+    } catch (e) {
+      await conn.rollback(); 
+      throw e; 
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro interno ao deletar.' });
   }
 });
 

@@ -41,8 +41,8 @@ router.post('/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Senha incorreta.' });
 
     req.session.userId = user.id;
-    const [[perfil]] = await db.query('SELECT nome, avatar, role FROM perfis WHERE user_id = ?', [user.id]);
-    res.json({ id: user.id, nome: perfil?.nome, avatar: perfil?.avatar, role: perfil?.role });
+    const [[perfil]] = await db.query('SELECT nome, avatar, role, banned_until FROM perfis WHERE user_id = ?', [user.id]);
+    res.json({ id: user.id, nome: perfil?.nome, avatar: perfil?.avatar, role: perfil?.role, banned_until: perfil?.banned_until });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro interno.' });
@@ -58,7 +58,7 @@ router.post('/logout', (req, res) => {
 router.get('/me', async (req, res) => {
   if (!req.session?.userId) return res.json(null);
   const [[perfil]] = await db.query(
-    'SELECT p.user_id AS id, p.nome, p.avatar, p.role FROM perfis p WHERE p.user_id = ?',
+    'SELECT p.user_id AS id, p.nome, p.avatar, p.role, p.banned_until FROM perfis p WHERE p.user_id = ?',
     [req.session.userId]
   );
   res.json(perfil ?? null);

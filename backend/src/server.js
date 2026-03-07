@@ -9,9 +9,13 @@ import topicosRouter   from './routes/topicos.js';
 import perfisRouter    from './routes/perfis.js';
 import categoriasRouter from './routes/categorias.js';
 import eventosRouter, { membrosRouter } from './routes/eventos.js';
+import uploadRouter from './routes/upload.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 app.use(cors({
@@ -33,6 +37,9 @@ app.use('/api/perfis',     perfisRouter);
 app.use('/api/categorias', categoriasRouter);
 app.use('/api/eventos',    eventosRouter);
 app.use('/api/membros',    membrosRouter);
+app.use('/api/upload', uploadRouter);
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check
 app.get('/api/health', (_req, res) => res.json({ ok: true }));

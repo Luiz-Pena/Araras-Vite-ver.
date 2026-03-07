@@ -8,7 +8,7 @@ const router = Router();
 // GET /api/perfis/:id
 router.get('/:id', async (req, res) => {
   const [[perfil]] = await db.query(`
-    SELECT p.user_id AS id, p.nome, p.bio, p.avatar, p.created_at, p.role,
+    SELECT p.user_id AS id, p.nome, p.bio, p.avatar, p.created_at, p.role, p.banned_until,
       (SELECT COUNT(*) FROM seguir WHERE seguindo_id = p.user_id) AS seguidores,
       (SELECT COUNT(*) FROM seguir WHERE seguidor_id = p.user_id) AS seguindo
     FROM perfis p WHERE p.user_id = ?
@@ -57,7 +57,7 @@ router.put('/:id/ban', requireAuth, async (req, res) => {
   if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado.' });
   if (usuario.role === 'admin') return res.status(403).json({ error: 'Não pode banir outro admin.' });
 
-  await db.query('UPDATE perfis SET banned_until = datetime("now", "+7 days") WHERE user_id = ?', [id]);
+  await db.query("UPDATE perfis SET banned_until = datetime('now', '+7 days') WHERE user_id = ?", [id]);
   res.json({ ok: true });
 });
 
@@ -95,6 +95,24 @@ router.post('/:id/seguir', requireAuth, async (req, res) => {
     await db.query('DELETE FROM seguir WHERE seguidor_id = ? AND seguindo_id = ?', [req.session.userId, seguindoId]);
   }
   res.json({ jaSegue: acao === 'seguir' });
+});
+
+// Trecho corrigido da rota tornar_adm
+router.put('/:id/tornar_adm', requireAuth, async (req, res) => {
+  const [[solicitante]] = await db.query(
+    'SELECT role FROM perfis WHERE user_id = ?',
+    [req.session.userId]
+  );
+
+  // Verifique se o seu banco usa 'admin' ou 'adm'
+  if (solicitante?.role !== 'adm') 
+    return res.status(403).json({ error: 'Sem permissão.' });
+
+  await db.query(
+    'UPDATE perfis SET role = ? WHERE user_id = ?',
+    ['adm', req.params.id]
+  );
+  res.json({ ok: true });
 });
 
 

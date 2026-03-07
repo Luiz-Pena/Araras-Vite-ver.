@@ -14,6 +14,29 @@ export default function Perfil() {
   const [data, setData] = useState(null);
   const [editando, setEditando] = useState(false);
   const [editForm, setEditForm] = useState({ nome: '', bio: '', avatar: '' });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const data = await res.json();
+    setEditForm({ ...editForm, avatar: data.url });
+    setUploadingAvatar(false);
+  };
+
+  const tornarAdm = async () => {
+    if (!confirm('Tornar este usuário administrador?')) return;
+    await api.perfis.tornarAdm(id);
+    carregar();
+  };
 
   const carregar = () =>
     api.perfis.buscar(id).then((d) => {
@@ -70,6 +93,9 @@ export default function Perfil() {
           <img src={perfil.avatar || AVATAR_DEFAULT} alt="" className="rounded-circle mb-2"
             style={{ width: 120, height: 120, objectFit: 'cover' }} />
           <h5>{perfil.nome}</h5>
+          {perfil?.banned_until && new Date(perfil.banned_until) > new Date() && (
+            <span className="badge bg-danger mb-2">Banido até {fmt(perfil.banned_until)}</span>
+          )}
           {perfil?.role === 'adm' && <span className="badge bg-primary">Administrador</span>}
           <p className="text-muted small">{perfil.seguidores} Seguidores · {perfil.seguindo} Seguindo</p>
           <p className="small text-muted">Membro desde {fmt(perfil.created_at)}</p>
@@ -78,6 +104,12 @@ export default function Perfil() {
           {user?.role === 'adm' && !isMeu && perfil.role !== 'adm' && (
             <button className="btn btn-danger btn-sm w-100 mb-2" onClick={banirUsuario}>
               Banir Usuário
+            </button>
+          )}
+
+          {user?.role === 'adm' && !isMeu && perfil.role === 'user' && (
+            <button className="btn btn-primary btn-sm w-100 mb-2" onClick={tornarAdm}>
+              Tornar Administrador
             </button>
           )}
 
@@ -97,9 +129,21 @@ export default function Perfil() {
                   onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} />
               </div>
               <div className="mb-2">
-                <label className="form-label small">Avatar (URL)</label>
-                <input className="form-control form-control-sm" value={editForm.avatar}
-                  onChange={(e) => setEditForm({ ...editForm, avatar: e.target.value })} />
+                <label className="form-label small">Avatar</label>
+                <input
+                  type="file"
+                  className="form-control form-control-sm"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                />
+                  {uploadingAvatar && <small className="text-muted">Enviando...</small>}
+                  {editForm.avatar && (
+                    <img
+                      src={editForm.avatar}
+                      className="rounded-circle mt-2"
+                      style={{ width: 60, height: 60, objectFit: 'cover' }}
+                    />
+                  )}
               </div>
               <div className="mb-2">
                 <label className="form-label small">Bio</label>
@@ -127,7 +171,7 @@ export default function Perfil() {
         {topicos.map((t) => (
           <div key={t.id} className="card mb-3 position-relative">
             <div className="card-body">
-              {isMeu && (
+              {(isMeu || user?.role === 'adm') && (
                 <button
                   className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1"
                   onClick={() => deletarTopico(t.id)}

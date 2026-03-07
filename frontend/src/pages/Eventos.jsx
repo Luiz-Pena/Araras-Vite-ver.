@@ -27,6 +27,16 @@ export default function Eventos() {
     }
   };
 
+  const deletarEvento = async (id) => {
+    if (!confirm('Deseja realmente excluir este evento?')) return;
+    try {
+      await api.eventos.deletar(id);
+      carregar();
+    } catch (err) {
+      alert('Erro ao deletar evento: ' + err.message);
+    }
+  }
+
   return (
     <div className="container py-4 d-flex gap-4">
       <main style={{ flex: 3 }}>
@@ -45,9 +55,16 @@ export default function Eventos() {
             )}
             {eventos.map((e) => (
               <li key={e.id} className="list-group-item">
-                <div className="d-flex justify-content-between">
+                <div className="d-flex justify-content-between align-items-start position-relative">
                   <strong>{e.nome}</strong>
                   <span className="text-muted small">{e.data_formatada}</span>
+                  {user?.role === 'adm' && (
+                      <button 
+                        className="btn btn-sm btn-outline-danger border-0 position-relative top-0 end-0 mt-1 me-1" 
+                        onClick={() => deletarEvento(e.id)}>
+                          ✕
+                      </button>
+                    )}
                 </div>
                 <p className="mb-0 small">{e.descricao}</p>
                 {e.local && <small className="text-muted">Local: {e.local}</small>}

@@ -14,6 +14,23 @@ export default function Topico() {
   const [loading, setLoading] = useState(true);
   const [comentario, setComentario] = useState({ conteudo: '', midia: '' });
   const [enviando, setEnviando] = useState(false);
+  const [uploadingMidia, setUploadingMidia] = useState(false);
+
+  const handleMidiaUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingMidia(true);
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    const data = await res.json();
+    setComentario({ ...comentario, midia: data.url });
+    setUploadingMidia(false);
+  };
 
   const carregar = () => {
     setLoading(true);
@@ -76,7 +93,7 @@ export default function Topico() {
               style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover' }} />
             <div>
               <h4 className="mb-0">{topico.titulo}</h4>
-              <small className="text-muted">
+              <small className="text-muted gap-2 d-flex align-items-center">
                 Por <Link to={`/perfil/${topico.user_id}`}>{topico.autor_nome || 'Usuário Removido'}</Link>
                 {topico.autor_role === 'adm' && <span className="badge bg-primary">Administrador</span>} 
                 {' '} em {fmt(topico.created_at)}
@@ -85,7 +102,7 @@ export default function Topico() {
           </div>
 
           {user && (user.id === topico.user_id || user.role === 'adm') && (
-            <button className="btn btn-sm btn-outline-danger mb-3" onClick={deletarTopico}>Excluir Tópico</button>
+            <button className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1" onClick={deletarTopico}>✕</button>
           )}
           
           <hr />
@@ -128,7 +145,14 @@ export default function Topico() {
                 {c.autor_role === 'adm' && <span className="badge bg-primary ms-1">Administrador</span>}
               </div>
               <p className="mb-1" style={{ whiteSpace: 'pre-wrap' }}>{c.conteudo}</p>
-              {c.midia && <img src={c.midia} className="img-fluid mb-1 rounded" alt="mídia" style={{ maxHeight: 200 }} />}
+              {c.midia && (
+                <img
+                  src={c.midia}
+                  className="img-fluid mb-1 rounded"
+                  alt="mídia"
+                  style={{ maxHeight: 200, width: '100%', objectFit: 'contain', display: 'block' }}
+                />
+              )}
               <small className="text-muted">{fmt(c.created_at)}</small>
             </div>
           </div>
@@ -148,11 +172,18 @@ export default function Topico() {
                   onChange={(e) => setComentario({ ...comentario, conteudo: e.target.value })} />
               </div>
               <div className="mb-2">
-                <input type="url" className="form-control" placeholder="URL de mídia (opcional)"
-                  value={comentario.midia}
-                  onChange={(e) => setComentario({ ...comentario, midia: e.target.value })} />
+                <input
+                  type="file"
+                  className="form-control"
+                  accept="image/*"
+                  onChange={handleMidiaUpload}
+                />
+                {uploadingMidia && <small className="text-muted">Enviando...</small>}
+                {comentario.midia && (
+                  <img src={comentario.midia} className="img-fluid mt-2 rounded" style={{ maxHeight: 120 }} />
+                )}
               </div>
-              <button type="submit" className="btn btn-primary btn-sm" disabled={enviando}>
+              <button type="submit" className="btn btn-primary btn-sm" disabled={enviando || uploadingMidia}>
                 {enviando ? 'Publicando...' : 'Publicar Comentário'}
               </button>
             </form>

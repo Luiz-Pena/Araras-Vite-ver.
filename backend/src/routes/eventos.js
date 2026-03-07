@@ -12,6 +12,16 @@ router.get('/', async (_req, res) => {
   res.json(rows);
 });
 
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM eventos WHERE id = ?', [id]);
+    res.json({ message: 'Evento deletado com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao deletar evento.' });
+  }
+});
+
 // POST /api/eventos
 router.post('/', async (req, res) => {
   const { nome, descricao, dataEvento, local } = req.body;

@@ -18,3 +18,4 @@ araras.db
 araras.db-journal
 araras.db-shm
 araras.db-wal
+backend/uploads/

@@ -4,19 +4,52 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
 import Sidebar from '../components/Sidebar';
+import { useNavigate } from 'react-router-dom';
 import NovoTopicoModal from '../components/NovoTopicoModal';
 
-function TopicCard({ t }) {
+function TopicCard({ t, user, onDelete }) {
+  const navigate = useNavigate();
   const avatar = t.autor_avatar || 'https://cdn-icons-png.flaticon.com/512/3736/3736502.png';
+
+  const handleCardClick = (e) => {
+    // Se o clique foi no botão de excluir ou em algum link interno, não redireciona
+    if (e.target.closest('button') || e.target.closest('a')) {
+      return;
+    }
+    navigate(`/topico/${t.id}`);
+  };
+
   return (
-    <div className="card mb-3 cartao-topico">
+    <div 
+      className="card mb-3 cartao-topico position-relative" 
+      onClick={handleCardClick}
+      style={{ cursor: 'pointer' }} // Muda o cursor para indicar que é clicável
+    >
       <div className="card-body d-flex gap-3 align-items-center">
-        <Link to={`/perfil/${t.user_id}`}>
+        
+        {/* Botão de excluir - o e.target.closest('button') acima cuida disso */}
+        {user && (user.id === t.user_id || user.role === 'adm') && (
+          <button 
+            className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1" 
+            onClick={(e) => {
+              e.stopPropagation(); // Garante que o clique não suba para o card
+              onDelete(t.id);
+            }}
+            style={{ zIndex: 2 }} // Garante que fique acima do clique do card
+          >
+            ✕
+          </button>
+        )}
+
+        <Link to={`/perfil/${t.user_id}`} onClick={(e) => e.stopPropagation()}>
           <img src={avatar} alt="" style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover' }} />
         </Link>
+
         <div className="flex-grow-1">
           <h6 className="mb-1">
-            <Link to={`/topico/${t.id}`} className="text-dark fw-semibold">{t.titulo}</Link>
+            <Link to={`/topico/${t.id}`} className="text-dark fw-semibold">
+              {t.titulo}
+            </Link>
           </h6>
           <small className="text-muted gap-2 d-flex flex-wrap align-items-center">
             Por <Link to={`/perfil/${t.user_id}`}>{t.autor_nome || 'Usuário Removido'}</Link>{' '}
@@ -47,6 +80,17 @@ export default function Home() {
     api.topicos.listar().then(setTopicos).finally(() => setLoading(false));
   };
 
+  // Função para deletar o tópico
+  const deletarTopico = async (id) => {
+    if (!confirm('Deseja realmente excluir este tópico?')) return;
+    try {
+      await api.topicos.deletar(id);
+      carregar(); // Recarrega a lista após deletar
+    } catch (err) {
+      alert('Erro ao deletar tópico: ' + err.message);
+    }
+  };
+
   useEffect(carregar, []);
 
   return (
@@ -54,8 +98,12 @@ export default function Home() {
       <main style={{ flex: 3 }}>
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h4 className="mb-0">Tópicos Recentes</h4>
-          {user && user.banned_until && new Date(user.banned_until) > new Date() ? null : (
-            <button className="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovoTopico">
+          {user && (!user.banned_until || new Date(user.banned_until) < new Date()) && (
+            <button 
+              className="btn btn-primary btn-sm" 
+              data-bs-toggle="modal" 
+              data-bs-target="#modalNovoTopico"
+            >
               Criar Novo Tópico
             </button>
           )}
@@ -66,7 +114,14 @@ export default function Home() {
         ) : topicos.length === 0 ? (
           <p className="text-muted">Nenhum tópico encontrado.</p>
         ) : (
-          topicos.map((t) => <TopicCard key={t.id} t={t} />)
+          topicos.map((t) => (
+            <TopicCard 
+              key={t.id} 
+              t={t} 
+              user={user} 
+              onDelete={deletarTopico} 
+            />
+          ))
         )}
       </main>
 
