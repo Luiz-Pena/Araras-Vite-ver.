@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import db from '../db/connection.js';
 import { requireAuth } from '../middleware/auth.js';
+import { verificarTexto } from '../middleware/filtroConteudo.js';
 
 const router = Router();
 
@@ -57,7 +58,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/topicos
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, verificarTexto, async (req, res) => {
   const { titulo, conteudo, categoriaNome, midia } = req.body;
   if (!titulo || !conteudo || !categoriaNome)
     return res.status(400).json({ error: 'Campos obrigatórios.' });
@@ -129,7 +130,7 @@ router.post('/:id/curtir', requireAuth, async (req, res) => {
 });
 
 // POST /api/topicos/:id/comentarios
-router.post('/:id/comentarios', requireAuth, async (req, res) => {
+router.post('/:id/comentarios', requireAuth, verificarTexto, async (req, res) => {
   const { conteudo, midia } = req.body;
   if (!conteudo) return res.status(400).json({ error: 'Conteúdo obrigatório.' });
 
