@@ -1,6 +1,4 @@
 // src/pages/Regras.jsx
-import Sidebar from '../components/Sidebar';
-
 const regras = [
   { num: 1, titulo: 'Respeite os outros membros.', desc: 'Comentários ofensivos, discriminatórios ou de cunho sexual não serão tolerados.' },
   { num: 2, titulo: 'Mantenha a organização.',     desc: 'Publique tópicos na categoria correta e evite spam.' },
@@ -27,7 +25,6 @@ export default function Regras() {
           </div>
         </div>
       </main>
-      <Sidebar />
     </div>
   );
 }

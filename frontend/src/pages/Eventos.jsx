@@ -1,7 +1,6 @@
 // src/pages/Eventos.jsx
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
-import Sidebar from '../components/Sidebar';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Eventos() {
@@ -76,7 +75,6 @@ export default function Eventos() {
           </ul>
         </div>
       </main>
-      <Sidebar />
 
       {/* Modal */}
       <div className="modal fade" id="modalEvento" tabIndex="-1" ref={modalRef}>

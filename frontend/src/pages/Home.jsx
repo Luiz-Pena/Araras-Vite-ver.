@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
-import Sidebar from '../components/Sidebar';
 import { useNavigate } from 'react-router-dom';
 import NovoTopicoModal from '../components/NovoTopicoModal';
 
@@ -124,7 +123,6 @@ export default function Home() {
         )}
       </main>
 
-      <Sidebar />
       {user && <NovoTopicoModal onCriado={carregar} />}
     </div>
   );

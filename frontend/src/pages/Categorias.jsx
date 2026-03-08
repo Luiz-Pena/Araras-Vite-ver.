@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
-import Sidebar from '../components/Sidebar';
 import NovoTopicoModal from '../components/NovoTopicoModal';
 import NovoCursoModal from '../components/NovoCursoModal';
 
@@ -60,14 +59,30 @@ export default function Categorias() {
   return (
     <div className="container py-4 d-flex gap-4">
       <main style={{ flex: 3 }}>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h4>{curso ? `Tópicos: ${curso}` : 'Cursos UFU Monte Carmelo'}</h4>
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          {curso ? 
+            <div className="d-flex gap-3 align-items-center mb-3">
+              <button 
+                  onClick={() => navigate(-1)} 
+                  className="btn btn-link p-0 small mb-2 d-block text-decoration-none align-self-start"
+                  style={{ cursor: 'pointer' }}
+                >
+                  ← Voltar
+              </button>
+              <h4> Tópicos: {curso} </h4> 
+            </div>
+              : 
+            <h4> Categorias </h4>
+          }
           {curso && user && (!user.banned_until || new Date(user.banned_until) < new Date()) && (
-            <button className="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovoTopico">
-              Criar Tópico
+            <button 
+              className="btn btn-primary btn-sm" 
+              data-bs-toggle="modal" 
+              data-bs-target="#modalNovoTopico">
+                Criar Tópico
             </button>
           )}
-          {user && user.role === 'adm' && (
+          {user && user.role === 'adm' && !curso && (
             <button 
               className="btn btn-success btn-sm" 
               onClick={() => setShowModalCurso(true)} 
@@ -157,7 +172,6 @@ export default function Categorias() {
         {itens.length === 0 && <p className="text-muted">Nenhum item encontrado.</p>}
       </main>
       
-      <Sidebar />
       {user && <NovoTopicoModal onCriado={carregar} />}
       {showModalCurso && (
         <NovoCursoModal 

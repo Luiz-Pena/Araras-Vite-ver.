@@ -8,7 +8,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     await logout();
-    nav('/');
+    nav('/login');
   };
 
   return (

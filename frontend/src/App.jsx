@@ -1,6 +1,7 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
+import Layout    from './components/Layout';
 import Header   from './components/Header';
 import Home      from './pages/Home';
 import Login     from './pages/Login';
@@ -19,15 +20,17 @@ export default function App() {
         <div style={{ minHeight: '100vh', background: '#f8f9fa' }}>
           <Header />
           <Routes>
-            <Route path="/"              element={<Home />} />
+            <Route element={<Layout />}>
+              <Route path="/"              element={<Home />} />
+              <Route path="/topico/:id"    element={<Topico />} />
+              <Route path="/perfil/:id"    element={<Perfil />} />
+              <Route path="/categorias"    element={<Categorias />} />
+              <Route path="/membros"       element={<Membros />} />
+              <Route path="/eventos"       element={<Eventos />} />
+              <Route path="/regras"        element={<Regras />} />
+            </Route>
             <Route path="/login"         element={<Login />} />
             <Route path="/cadastro"      element={<Cadastro />} />
-            <Route path="/topico/:id"    element={<Topico />} />
-            <Route path="/perfil/:id"    element={<Perfil />} />
-            <Route path="/categorias"    element={<Categorias />} />
-            <Route path="/membros"       element={<Membros />} />
-            <Route path="/eventos"       element={<Eventos />} />
-            <Route path="/regras"        element={<Regras />} />
           </Routes>
         </div>
       </AuthProvider>

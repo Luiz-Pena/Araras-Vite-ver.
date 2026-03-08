@@ -10,7 +10,7 @@ const fmt = (d) => new Date(d).toLocaleDateString('pt-BR');
 export default function Perfil() {
   const { id } = useParams();
   const { user, logout } = useAuth();
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [editando, setEditando] = useState(false);
   const [editForm, setEditForm] = useState({ nome: '', bio: '', avatar: '' });
@@ -57,7 +57,7 @@ export default function Perfil() {
     if (!confirm('Excluir sua conta permanentemente?')) return;
     await api.perfis.deletar();
     await logout();
-    nav('/');
+    nav('/login');
   };
 
   const banirUsuario = async () => {
@@ -89,7 +89,13 @@ export default function Perfil() {
       {/* Sidebar perfil */}
       <aside style={{ width: 300, flexShrink: 0 }}>
         <div className="card p-3">
-          <Link to="/" className="small mb-2 d-block">← Voltar</Link>
+          <button 
+            onClick={() => navigate(-1)} 
+            className="btn btn-link p-0 small mb-2 d-block text-decoration-none align-self-start"
+            style={{ cursor: 'pointer' }}
+          >
+            ← Voltar
+          </button>
           <img src={perfil.avatar || AVATAR_DEFAULT} alt="" className="rounded-circle mb-2"
             style={{ width: 120, height: 120, objectFit: 'cover' }} />
           <h5>{perfil.nome}</h5>
@@ -167,22 +173,52 @@ export default function Perfil() {
       {/* Publicações */}
       <main style={{ flex: 1 }}>
         <h5 className="mb-3">Publicações</h5>
-        {topicos.length === 0 && <p className="text-muted">Nenhuma publicação ainda.</p>}
-        {topicos.map((t) => (
-          <div key={t.id} className="card mb-3 position-relative">
-            <div className="card-body">
-              {(isMeu || user?.role === 'adm') && (
-                <button
-                  className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1"
-                  onClick={() => deletarTopico(t.id)}
-                >✕</button>
-              )}
-              <Link to={`/topico/${t.id}`} className="text-dark fw-semibold d-block mb-1">{t.titulo}</Link>
+          {topicos.length === 0 && <p className="text-muted">Nenhuma publicação ainda.</p>}
+            {topicos.map((t) => (
+              <div 
+                key={t.id} 
+                className="card mb-3 position-relative shadow-sm cartao"
+                onClick={() => navigate(`/topico/${t.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
+              <div className="card-body">
+                {(isMeu || user?.role === 'adm') && (
+                  <button
+                    className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletarTopico(t.id);
+                    }}
+                    style={{ zIndex: 2 }} 
+                >
+                  ✕
+                </button>
+                )}
+        
+              <Link 
+                to={`/topico/${t.id}`} 
+                className="text-dark fw-semibold d-block mb-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {t.titulo}
+              </Link>
+
               <p className="text-muted small mb-1" style={{ whiteSpace: 'pre-wrap' }}>
                 {t.conteudo.slice(0, 200)}{t.conteudo.length > 200 ? '…' : ''}
               </p>
-              {t.midia && <img src={t.midia} className="img-fluid rounded mb-1" alt="mídia" style={{ maxHeight: 160 }} />}
-              <small className="text-muted">{t.curtidas} curtidas · {t.comentarios} comentários · {fmt(t.created_at)}</small>
+
+              {t.midia && (
+                <img 
+                  src={t.midia} 
+                  className="img-fluid rounded mb-1" 
+                  alt="mídia" 
+                  style={{ maxHeight: 160, width: '100%', objectFit: 'cover' }} 
+                />
+              )}
+
+              <small className="text-muted">
+                {t.curtidas} curtidas · {t.comentarios} comentários · {fmt(t.created_at)}
+              </small>
             </div>
           </div>
         ))}

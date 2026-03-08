@@ -78,12 +78,13 @@ export function initDB() {
       FOREIGN KEY (topico_id) REFERENCES topicos(id)   ON DELETE CASCADE,
       UNIQUE (user_id, topico_id)
     );
+    INSERT INTO categorias (nome, descricao) 
+    SELECT 'Geral', 'Discussões gerais sobre a comunidade Araras' 
+    WHERE NOT EXISTS (SELECT 1 FROM categorias WHERE nome = 'Geral'); 
   `);
   console.log('✅ Banco de dados inicializado (SQLite).');
 }
 
-// Adapta a API para ser compatível com o estilo async/await das rotas
-// better-sqlite3 é síncrono, então embrulhamos em Promises
 export default {
   query: (sql, params = []) => {
     try {

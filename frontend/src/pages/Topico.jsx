@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const AVATAR_DEFAULT = 'https://cdn-icons-png.flaticon.com/512/3736/3736502.png';
 const fmt = (d) => new Date(d).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -10,6 +11,7 @@ const fmt = (d) => new Date(d).toLocaleString('pt-BR', { day:'2-digit', month:'2
 export default function Topico() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData]   = useState(null);
   const [loading, setLoading] = useState(true);
   const [comentario, setComentario] = useState({ conteudo: '', midia: '' });
@@ -83,7 +85,13 @@ export default function Topico() {
 
   return (
     <div className="container py-4" style={{ maxWidth: 860 }}>
-      <Link to="/" className="btn btn-link ps-0 mb-3">← Voltar</Link>
+      <button 
+        onClick={() => navigate(-1)} 
+        className="btn btn-link p-0 small mb-2 d-block text-decoration-none align-self-start"
+        style={{ cursor: 'pointer' }}
+      >
+        ← Voltar
+      </button>
 
       {/* Tópico principal */}
       <div className="card mb-4">
@@ -102,7 +110,11 @@ export default function Topico() {
           </div>
 
           {user && (user.id === topico.user_id || user.role === 'adm') && (
-            <button className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1" onClick={deletarTopico}>✕</button>
+            <button 
+              className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1" 
+              onClick={deletarTopico}>
+                ✕
+            </button>
           )}
           
           <hr />
@@ -135,8 +147,9 @@ export default function Topico() {
                 <button
                   className="btn btn-sm btn-outline-danger border-0 position-absolute top-0 end-0 mt-1 me-1"
                   onClick={() => deletarComentario(c.id)}
-                  title="Excluir"
-                >✕</button>
+                  title="Excluir">
+                    ✕
+                </button>
               )}
               <div className="mb-1 d-flex align-items-center gap-2">
                 <Link to={`/perfil/${c.user_id}`} className="text-decoration-none">

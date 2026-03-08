@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import Sidebar from '../components/Sidebar';
+import { useNavigate } from 'react-router-dom';
 
 export default function Membros() {
   const [membros, setMembros] = useState([]);
+  const navigate = useNavigate();
   useEffect(() => { api.membros.listar().then(setMembros); }, []);
 
   const handleClickMembro = (m) => {
@@ -41,7 +42,6 @@ export default function Membros() {
           </div>
         ))}
       </main>
-      <Sidebar />
     </div>
   );
 }
