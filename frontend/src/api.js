@@ -47,6 +47,8 @@ export const api = {
   categorias: {
     listar:        ()     => req('/categorias'),
     topicos:       (nome) => req(`/categorias/${encodeURIComponent(nome)}/topicos`),
+    deletar:       (id)   => req(`/categorias/${id}`, { method: 'DELETE' }),
+    criar:         (data) => req('/categorias', { method: 'POST', body: data }),
   },
   eventos: {
     listar:   ()     => req('/eventos'),

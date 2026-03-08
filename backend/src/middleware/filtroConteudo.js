@@ -1,4 +1,4 @@
-import { PALAVRAS_PROIBIDAS } from "./palavrasProibidas";
+import { PALAVRAS_PROIBIDAS } from "./palavrasProibidas.js";
 
 export function verificarTexto(req, res, next) {
   const { titulo, conteudo } = req.body;

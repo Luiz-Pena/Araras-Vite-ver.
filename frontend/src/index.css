@@ -13,8 +13,9 @@ a {
 }
 a:hover { color: #0a58ca; }
 
-.cartao-topico:hover {
+.cartao:hover {
   background-color: #f8f9fa;
   border-color: #dee2e6;
   transition: background-color 0.2s;
+  border: 1px solid blue;
 }

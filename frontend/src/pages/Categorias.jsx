@@ -4,6 +4,7 @@ import { api } from '../api';
 import { useAuth } from '../hooks/useAuth';
 import Sidebar from '../components/Sidebar';
 import NovoTopicoModal from '../components/NovoTopicoModal';
+import NovoCursoModal from '../components/NovoCursoModal';
 
 export default function Categorias() {
   const [params] = useSearchParams();
@@ -11,12 +12,23 @@ export default function Categorias() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [itens, setItens] = useState([]);
+  const [showModalCurso, setShowModalCurso] = useState(false);
 
   const carregar = () => {
     if (curso) {
       api.categorias.topicos(curso).then(setItens);
     } else {
       api.categorias.listar().then(setItens);
+    }
+  };
+
+  const deletarCurso = async (cid) => {
+    if (!confirm('Deseja realmente excluir este curso? Todos os tópicos relacionados também serão excluídos.')) return;
+    try {
+      await api.categorias.deletar(cid);
+      carregar();
+    } catch (err) {
+      alert('Erro ao deletar: ' + err.message);
     }
   };
 
@@ -37,6 +49,14 @@ export default function Categorias() {
 
   useEffect(carregar, [curso]);
 
+  const handleCategoriaClick = (c) => {
+    if (curso === c.nome) {
+      navigate('/categorias');
+    } else {
+      navigate(`/categorias?curso=${encodeURIComponent(c.nome)}`);
+    }
+  }
+
   return (
     <div className="container py-4 d-flex gap-4">
       <main style={{ flex: 3 }}>
@@ -47,21 +67,54 @@ export default function Categorias() {
               Criar Tópico
             </button>
           )}
+          {user && user.role === 'adm' && (
+            <button 
+              className="btn btn-success btn-sm" 
+              onClick={() => setShowModalCurso(true)} 
+            >
+              Adicionar Curso
+            </button>
+          )}
         </div>
 
         {!curso && itens.map((c) => (
-          <div key={c.id} className="card mb-2 shadow-sm">
-            <div className="card-body">
-              <h6><Link to={`/categorias?curso=${encodeURIComponent(c.nome)}`}>{c.nome}</Link></h6>
-              <p className="text-muted small mb-0">{c.descricao}</p>
-            </div>
-          </div>
-        ))}
+  <div 
+    key={c.id} 
+    className="card mb-2 shadow-sm cartao" 
+    onClick={() => handleCategoriaClick(c)} 
+    style={{ cursor: 'pointer' }}         
+  >
+    <div className="card-body">
+      <div className="d-flex justify-content-between align-items-start">
+        <h6>
+          <Link 
+            to={`/categorias?curso=${encodeURIComponent(c.nome)}`}
+            onClick={(e) => e.stopPropagation()} 
+          >
+            {c.nome}
+          </Link>
+        </h6>
+        {user && user.role === 'adm' && c.nome !== 'Geral' && (
+          <button 
+            className="btn btn-sm btn-outline-danger border-0" 
+            onClick={(e) => {
+              e.stopPropagation(); 
+              deletarCurso(c.id);
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      <p className="text-muted small mb-0">{c.descricao}</p>
+    </div>
+  </div>
+  ))}
 
         {curso && itens.map((t) => (
           <div 
             key={t.id} 
-            className="card mb-2 cartao-topico position-relative"
+            className="card mb-2 cartao position-relative"
             onClick={() => handleCardClick(t.id)}
             style={{ cursor: 'pointer' }}
           >
@@ -106,6 +159,12 @@ export default function Categorias() {
       
       <Sidebar />
       {user && <NovoTopicoModal onCriado={carregar} />}
+      {showModalCurso && (
+        <NovoCursoModal 
+          onClose={() => setShowModalCurso(false)} 
+          onCriado={carregar} 
+        />
+      )}
     </div>
   );
 }

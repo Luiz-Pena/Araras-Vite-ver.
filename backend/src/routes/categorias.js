@@ -35,4 +35,40 @@ router.get('/:nome/topicos', async (req, res) => {
   res.json(rows);
 });
 
+router.post('/', async (req, res) => {
+  const { nome, descricao } = req.body;
+  if (!nome) return res.status(400).json({ error: 'O nome da categoria é obrigatório.' });
+
+  try {
+    const [result] = await db.query('INSERT INTO categorias (nome, descricao) VALUES (?, ?)', [nome, descricao]);
+    res.status(201).json({ id: result.insertId, nome, descricao });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Já existe uma categoria com esse nome.' });
+    }
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao criar categoria.' });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const [result] = await db.query('DELETE FROM categorias WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Categoria não encontrada.' });
+    }
+    const [respostas] = await db.query('SELECT id FROM topicos WHERE categoria_id = ?', [id]);
+    const topicoIds = respostas.map(r => r.id);
+    if (topicoIds.length > 0) {
+      await db.query('DELETE FROM respostas WHERE topico_id IN (?)', [topicoIds]);
+      await db.query('DELETE FROM topicos WHERE id IN (?)', [topicoIds]);
+    }
+    res.json({ message: 'Categoria deletada com sucesso.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao deletar categoria.' });
+  }
+});
+
 export default router;

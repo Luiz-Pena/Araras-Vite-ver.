@@ -55,16 +55,19 @@ export default function Eventos() {
             )}
             {eventos.map((e) => (
               <li key={e.id} className="list-group-item">
-                <div className="d-flex justify-content-between align-items-start position-relative">
+                <div className="d-flex justify-content-between align-items-center position-relative">
                   <strong>{e.nome}</strong>
-                  <span className="text-muted small">{e.data_formatada}</span>
-                  {user?.role === 'adm' && (
+                  <div className="gap-2 d-flex align-items-center">
+                    <span className="text-muted small">{e.data_formatada}</span>
+                    {user?.role === 'adm' && (
                       <button 
-                        className="btn btn-sm btn-outline-danger border-0 position-relative top-0 end-0 mt-1 me-1" 
+                        className="btn btn-sm btn-outline-danger border-0 position-relative top-0 end-0" 
                         onClick={() => deletarEvento(e.id)}>
                           ✕
                       </button>
                     )}
+                  </div>
+
                 </div>
                 <p className="mb-0 small">{e.descricao}</p>
                 {e.local && <small className="text-muted">Local: {e.local}</small>}

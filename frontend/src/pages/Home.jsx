@@ -12,7 +12,6 @@ function TopicCard({ t, user, onDelete }) {
   const avatar = t.autor_avatar || 'https://cdn-icons-png.flaticon.com/512/3736/3736502.png';
 
   const handleCardClick = (e) => {
-    // Se o clique foi no botão de excluir ou em algum link interno, não redireciona
     if (e.target.closest('button') || e.target.closest('a')) {
       return;
     }
@@ -21,8 +20,8 @@ function TopicCard({ t, user, onDelete }) {
 
   return (
     <div 
-      className="card mb-3 cartao-topico position-relative" 
-      onClick={handleCardClick}
+      className="card mb-3 cartao position-relative" 
+      onClick={(e) => handleCardClick(e)}
       style={{ cursor: 'pointer' }} // Muda o cursor para indicar que é clicável
     >
       <div className="card-body d-flex gap-3 align-items-center">
