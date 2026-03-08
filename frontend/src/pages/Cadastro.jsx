@@ -23,7 +23,12 @@ export default function Cadastro() {
   return (
     <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
       <div className="card shadow" style={{ width: '100%', maxWidth: 440 }}>
-        <div className="card-header text-center"><h4>Cadastro</h4></div>
+        <div className="card-header text-center align-items-center d-flex flex-column">
+          <Link to="/" className="small text-muted text-decoration-none justify-self-start mb-2">
+            ← Voltar para a Home
+          </Link>
+          <h4>Cadastro</h4>
+          </div>
         <div className="card-body">
           {erro && <div className="alert alert-danger">{erro}</div>}
           <form onSubmit={submit}>

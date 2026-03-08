@@ -1,48 +1,106 @@
-// src/pages/Login.jsx
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { api } from '../api'; 
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
-  const { login } = useAuth();
-  const nav = useNavigate();
-  const [form, setForm] = useState({ email: '', senha: '' });
+  const { login: setAuthContext } = useAuth();
+  const navigate = useNavigate();
+  
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
+  const [carregando, setCarregando] = useState(false);
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
+    setCarregando(true);
+
     try {
-      await login(form);
-      nav('/');
+      const usuarioLogado = await api.auth.login({ email, senha });
+      setAuthContext(usuarioLogado);
+      navigate('/');
     } catch (err) {
-      setErro(err.message);
+      setErro(err.message || 'E-mail ou senha incorretos.');
+    } finally {
+      setCarregando(false);
     }
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-      <div className="card shadow" style={{ width: '100%', maxWidth: 420 }}>
-        <div className="card-header text-center"><h4>Login</h4></div>
-        <div className="card-body">
-          {erro && <div className="alert alert-danger">{erro}</div>}
-          <form onSubmit={submit}>
-            <div className="mb-3">
-              <label className="form-label">E-mail</label>
-              <input type="email" className="form-control" required
-                value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Senha</label>
-              <input type="password" className="form-control" required
-                value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} />
-            </div>
-            <button type="submit" className="btn btn-primary w-100">Entrar</button>
-          </form>
+    <div className="container-fluid p-0 vh-100 bg-light">
+      <div className="row g-0 h-100">
+        
+        {/* LADO ESQUERDO: IMAGEM (Aparece apenas em telas grandes) */}
+        <div className="col-lg-6 d-none d-lg-block">
+          <img 
+            src="https://famed.ufu.br/sites/famed.ufu.br/files//imce/45_anos_1.jpeg" 
+            className="w-100 h-100" 
+            style={{ objectFit: 'cover' }}
+            alt="UFU Campus"
+          />
         </div>
-        <div className="card-footer text-center">
-          <small>Não tem conta? <Link to="/cadastro">Cadastre-se</Link></small>
+
+        {/* LADO DIREITO: CARD ANTIGO CENTRALIZADO */}
+        <div className="col-lg-6 d-flex justify-content-center align-items-center p-4">
+          <div className="card shadow border-0" style={{ width: '100%', maxWidth: 420 }}>
+            
+            <div className="card-header bg-white text-center py-3 border-0">
+              <Link to="/" className="small text-muted text-decoration-none mb-2">
+                ← Voltar para a Home
+              </Link>
+               <h4 className="mb-0">Login</h4>
+            </div>
+
+            <div className="card-body p-4">
+              {erro && <div className="alert alert-danger py-2">{erro}</div>}
+              
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label className="form-label">E-mail</label>
+                  <input 
+                    type="email" 
+                    className="form-control" 
+                    placeholder="exemplo@ufu.br"
+                    required
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="form-label">Senha</label>
+                  <input 
+                    type="password" 
+                    className="form-control" 
+                    placeholder="Sua senha"
+                    required
+                    value={senha} 
+                    onChange={(e) => setSenha(e.target.value)} 
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="btn btn-primary w-100 py-2 shadow-sm"
+                  disabled={carregando}
+                >
+                  {carregando ? 'Entrando...' : 'Entrar'}
+                </button>
+              </form>
+            </div>
+
+            <div className="card-footer bg-white text-center py-3 border-0">
+              <small className="text-muted">
+                Não tem conta? <Link to="/cadastrar" className="text-decoration-none">Cadastre-se</Link>
+              </small>
+              <br />
+            </div>
+            
+          </div>
         </div>
+
       </div>
     </div>
   );
