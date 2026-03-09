@@ -174,7 +174,7 @@ export default function Topico() {
 
       {/* Form novo comentário */}
 
-      {user ? (
+      {user && (
         <div className="card mt-4">
           <div className="card-body">
             <h6>Adicionar Comentário</h6>
@@ -202,11 +202,19 @@ export default function Topico() {
             </form>
           </div>
         </div>
-      ) : (
+      )}
+
+      {user.banned_until && new Date(user.banned_until) > new Date() && (
+        <div className="alert alert-warning mt-4">
+          Você está banido de comentar até {new Date(user.banned_until).toLocaleString()}.
+        </div>
+      )}
+
+      {!user &&
         <div className="alert alert-info mt-4">
           <Link to="/login">Faça login</Link> para comentar.
         </div>
-      )}
+      }
     </div>
   );
 }
