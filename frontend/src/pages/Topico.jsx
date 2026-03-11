@@ -204,7 +204,7 @@ export default function Topico() {
         </div>
       )}
 
-      {user.banned_until && new Date(user.banned_until) > new Date() && (
+      {user?.banned_until && new Date(user.banned_until) > new Date() && (
         <div className="alert alert-warning mt-4">
           Você está banido de comentar até {new Date(user.banned_until).toLocaleString()}.
         </div>
