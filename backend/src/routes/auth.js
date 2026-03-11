@@ -34,6 +34,8 @@ router.post('/login', async (req, res) => {
   const { email, senha } = req.body;
   try {
     const [rows] = await db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+    console.log('User found:', rows[0]);
+
     if (rows.length === 0) return res.status(401).json({ error: 'Usuário não encontrado.' });
 
     const user = rows[0];

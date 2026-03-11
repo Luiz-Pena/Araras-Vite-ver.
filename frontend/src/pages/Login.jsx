@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../api'; 
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
-  const { login: setAuthContext } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   
   const [email, setEmail] = useState('');
@@ -18,8 +17,7 @@ export default function Login() {
     setCarregando(true);
 
     try {
-      const usuarioLogado = await api.auth.login({ email, senha });
-      setAuthContext(usuarioLogado);
+      await login({ email, senha });
       navigate('/');
     } catch (err) {
       setErro(err.message || 'E-mail ou senha incorretos.');
